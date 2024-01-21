@@ -8,8 +8,7 @@ pub struct Options {
     pub size: Vec2,
 }
 
-#[derive(Debug, PartialEq)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CellType {
     Food,
     Empty,
@@ -77,7 +76,7 @@ impl Snake {
         let new_position = (self.get_head_position() % max_x) + 1;
 
         // Wall collision
-        if new_position > max_x {
+        if new_position >= max_x {
             return GameResult::WallCollision;
         }
 
@@ -85,7 +84,7 @@ impl Snake {
     }
 
     pub fn move_west(&mut self, food_position: usize, max_x: usize) -> GameResult {
-        let new_position: isize = ((self.get_head_position() % max_x) - 1) as isize;
+        let new_position: isize = (self.get_head_position() % max_x) as isize - 1;
 
         // Wall collision
         if new_position < 0 {
@@ -99,7 +98,7 @@ impl Snake {
         let new_position = self.get_head_position() + max_x;
 
         // Wall collision
-        if new_position / max_x > max_y {
+        if new_position / max_x >= max_y {
             return GameResult::WallCollision;
         }
 
@@ -107,7 +106,7 @@ impl Snake {
     }
 
     pub fn move_north(&mut self, food_position: usize, max_x: usize) -> GameResult {
-        let new_position:isize = (self.get_head_position() - max_x) as isize;
+        let new_position:isize = self.get_head_position() as isize - max_x as isize;
 
         // Wall collision
         if new_position < 0 {
@@ -138,31 +137,37 @@ impl Snake {
     }
 }
 
-#[derive(Debug)]
-pub struct Board {
+#[derive(Clone, Debug)]
+pub struct SnakeGame {
     pub cells: Vec<CellType>,
     pub size: Vec2,
     pub snake: Snake,
-    pub(crate) food_position: usize,
+    pub food_position: usize,
+    pub score: usize,
 }
 
-impl Board {
+impl SnakeGame {
     pub fn new(options: Options) -> Self {
         let size = options.size;
         let n_cells = size.x * size.y;
 
         // Snake
-        let snake_index = n_cells / 2 + 8;
+        let snake_index = n_cells / 2 + 4;
         let mut snake_positions: Vec<usize> = vec![Default::default(); 4];
         snake_positions[0] = snake_index;
         snake_positions[1] = snake_index - 1;
         snake_positions[2] = snake_index - 2;
         snake_positions[3] = snake_index - 3;
 
+
         let snake = Snake { positions: snake_positions, direction: MovementDirection::East };
-        let mut board: Board = Self { cells: vec![CellType::Empty; n_cells], size, snake, food_position: 15 };
+        let mut board: SnakeGame = Self {
+            cells: vec![CellType::Empty; n_cells], size, snake,
+            food_position: 15,
+            score: 1,
+        };
         board.add_snake();
-        board.handle_food();
+        board.add_food();
         return board;
     }
 
@@ -197,14 +202,16 @@ impl Board {
         let random_index: usize = rand::thread_rng().gen_range(1..non_snake.len() - 1);
         return non_snake[random_index];
     }
-    fn handle_food(&mut self) {
+    fn add_food(&mut self) {
         let new_food_position = self.get_new_food_position();
         self.food_position = new_food_position;
         self.cells[new_food_position] = CellType::Food;
     }
 
-    pub(crate) fn move_forward(&mut self, moved_direction: MovementDirection) -> GameResult {
+    pub fn move_forward(&mut self, moved_direction: MovementDirection) -> GameResult {
+        // TODO these can be simplified
         let game_result = match moved_direction {
+
             // Nothing pressed
             MovementDirection::None => {
                 match self.snake.direction {
@@ -305,7 +312,8 @@ impl Board {
                 return game_result;
             }
             GameResult::Food => {
-                self.handle_food();
+                self.score +=1;
+                self.add_food();
             }
             _ => {}
         }
