@@ -6,6 +6,8 @@ A snake game using cursive written in rust.
 cargo run
 ```
 
+## Screenshot
+![screenshot.png](screenshot.png)
 
 ## Reset Terminal
 Sometimes the terminal gets stuck in a weird state after running the game.

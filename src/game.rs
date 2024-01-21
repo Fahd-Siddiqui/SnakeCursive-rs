@@ -20,13 +20,13 @@ pub enum CellType {
 impl CellType {
     pub fn to_string(&self) -> &str {
         match self {
-            CellType::Food => "O",
+            CellType::Food => "♥",
 
-            CellType::Empty => ".",
+            CellType::Empty => " ",
 
-            CellType::Head => "♦",
-            CellType::Body => "#",
-            CellType::Tail => "<",
+            CellType::Head => "■",
+            CellType::Body => "□",
+            CellType::Tail => "◦",
         }
     }
 }
@@ -106,7 +106,7 @@ impl Snake {
     }
 
     pub fn move_north(&mut self, food_position: usize, max_x: usize) -> GameResult {
-        let new_position:isize = self.get_head_position() as isize - max_x as isize;
+        let new_position: isize = self.get_head_position() as isize - max_x as isize;
 
         // Wall collision
         if new_position < 0 {
@@ -162,7 +162,9 @@ impl SnakeGame {
 
         let snake = Snake { positions: snake_positions, direction: MovementDirection::East };
         let mut board: SnakeGame = Self {
-            cells: vec![CellType::Empty; n_cells], size, snake,
+            cells: vec![CellType::Empty; n_cells],
+            size,
+            snake,
             food_position: 15,
             score: 1,
         };
@@ -209,9 +211,7 @@ impl SnakeGame {
     }
 
     pub fn move_forward(&mut self, moved_direction: MovementDirection) -> GameResult {
-        // TODO these can be simplified
         let game_result = match moved_direction {
-
             // Nothing pressed
             MovementDirection::None => {
                 match self.snake.direction {
@@ -236,70 +236,42 @@ impl SnakeGame {
                     MovementDirection::East => {
                         self.snake.move_east(self.food_position, self.size.x)
                     }
-                    MovementDirection::West => {
+                    _ => {
                         self.snake.move_west(self.food_position, self.size.x)
                     }
-                    MovementDirection::North => {
-                        self.snake.move_west(self.food_position, self.size.x)
-                    }
-                    MovementDirection::South => {
-                        self.snake.move_west(self.food_position, self.size.x)
-                    }
-                    _ => { GameResult::Continue }
                 }
             }
             // Pressing right
             MovementDirection::East => {
                 match self.snake.direction {
-                    MovementDirection::East => {
-                        self.snake.move_east(self.food_position, self.size.x)
-                    }
                     MovementDirection::West => {
                         self.snake.move_west(self.food_position, self.size.x)
                     }
-                    MovementDirection::North => {
+                    _ => {
                         self.snake.move_east(self.food_position, self.size.x)
                     }
-                    MovementDirection::South => {
-                        self.snake.move_east(self.food_position, self.size.x)
-                    }
-                    _ => { GameResult::Continue }
                 }
             }
             // Pressing up
             MovementDirection::North => {
                 match self.snake.direction {
-                    MovementDirection::East => {
-                        self.snake.move_north(self.food_position, self.size.x)
-                    }
-                    MovementDirection::West => {
-                        self.snake.move_north(self.food_position, self.size.x)
-                    }
-                    MovementDirection::North => {
-                        self.snake.move_north(self.food_position, self.size.x)
-                    }
                     MovementDirection::South => {
                         self.snake.move_south(self.food_position, self.size.x, self.size.y)
                     }
-                    _ => { GameResult::Continue }
+                    _ => {
+                        self.snake.move_north(self.food_position, self.size.x)
+                    }
                 }
             }
             // Pressing down
             MovementDirection::South => {
                 match self.snake.direction {
-                    MovementDirection::East => {
-                        self.snake.move_south(self.food_position, self.size.x, self.size.y)
-                    }
-                    MovementDirection::West => {
-                        self.snake.move_south(self.food_position, self.size.x, self.size.y)
-                    }
                     MovementDirection::North => {
                         self.snake.move_north(self.food_position, self.size.x)
                     }
-                    MovementDirection::South => {
+                    _ => {
                         self.snake.move_south(self.food_position, self.size.x, self.size.y)
                     }
-                    _ => { GameResult::Continue }
                 }
             }
         };
@@ -312,7 +284,7 @@ impl SnakeGame {
                 return game_result;
             }
             GameResult::Food => {
-                self.score +=1;
+                self.score += 1;
                 self.add_food();
             }
             _ => {}
