@@ -1,3 +1,4 @@
+use crate::score_tracker::ScoreTracker;
 use std::{usize};
 use cursive::{Vec2};
 use rand::Rng;
@@ -143,11 +144,11 @@ pub struct SnakeGame {
     pub size: Vec2,
     pub snake: Snake,
     pub food_position: usize,
-    pub score: usize,
+    pub score_tracker: ScoreTracker
 }
 
 impl SnakeGame {
-    pub fn new(options: Options) -> Self {
+    pub fn new(options: Options, score_tracker: ScoreTracker) -> Self {
         let size = options.size;
         let n_cells = size.x * size.y;
 
@@ -166,12 +167,24 @@ impl SnakeGame {
             size,
             snake,
             food_position: 15,
-            score: 1,
+            score_tracker: score_tracker,
         };
         board.add_snake();
         board.add_food();
         return board;
     }
+
+    pub fn get_direction(&self) -> &MovementDirection {
+        return &self.snake.direction;
+    }
+
+    pub fn get_last_score(&self) -> &usize {
+        return self.score_tracker.get_last_score();
+    }
+
+    // pub fn update_best_scores(&mut self) {
+    //     self.score_tracker.update_best_scores();
+    // }
 
     fn redraw(&mut self) {
         let n_cells = self.size.x * self.size.y;
@@ -284,7 +297,7 @@ impl SnakeGame {
                 return game_result;
             }
             GameResult::Food => {
-                self.score += 1;
+                self.score_tracker.update_last_score_by(1);
                 self.add_food();
             }
             _ => {}

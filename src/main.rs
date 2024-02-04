@@ -1,13 +1,16 @@
 mod game;
+mod score_tracker;
 
-use cursive::{direction::Direction, event::{Event, EventResult}, theme::{BaseColor, Color, ColorStyle}, view::CannotFocus, views::{Button, Dialog, LinearLayout, Panel, SelectView}, Cursive, Printer, Vec2, CursiveExt};
+use cursive::{direction::Direction, event::{Event, EventResult}, theme::{BaseColor, Color, ColorStyle}, view::CannotFocus, views::{Button, Dialog, LinearLayout, Panel, SelectView}, Cursive, Printer, Vec2, CursiveExt, view, views};
 use cursive::event::Key;
-use cursive::view::IntoBoxedView;
+use cursive::view::{IntoBoxedView, Nameable};
 use crate::game::{GameResult, MovementDirection, SnakeGame};
+use crate::score_tracker::ScoreTracker;
 
 
 fn main() {
     let mut cursive_runnable = cursive::default();
+    let score_tracker: ScoreTracker = ScoreTracker::new();
 
     cursive_runnable.add_layer(
         Dialog::new()
@@ -15,18 +18,17 @@ fn main() {
             .padding_lrtb(2, 2, 1, 1)
             .content(
                 LinearLayout::vertical()
-                    .child(Button::new_raw("  New game   ", show_options))
-                    .child(Button::new_raw(" Best scores ", |s| {
-                        s.add_layer(Dialog::info("Not yet!").title("Scores"))
-                    }))
+                    .child(Button::new_raw("  New game   ", move |s| show_options(s, score_tracker)))
+                    .child(Button::new_raw(" Best scores ", move |s| show_best_scores(s, score_tracker)))
                     .child(Button::new_raw("    Exit     ", |s| s.quit())),
             ),
     );
 
+
     cursive_runnable.run();
 }
 
-fn show_options(cursive_runnable: &mut Cursive) {
+fn show_options(cursive_runnable: &mut Cursive, score_tracker: ScoreTracker) {
     cursive_runnable.add_layer(
         Dialog::new()
             .title("Select size")
@@ -51,21 +53,21 @@ fn show_options(cursive_runnable: &mut Cursive) {
                             size: Vec2::new(64 * 4, 64),
                         },
                     )
-                    .on_submit(|s, option| {
+                    .on_submit(move |s, option| {
                         s.pop_layer();
-                        new_game(s, *option);
+                        new_game(s, *option, score_tracker);
                     }),
             )
             .dismiss_button("Back"),
     );
 }
 
-fn new_game(cursive_runnable: &mut Cursive, options: game::Options) {
+fn new_game(cursive_runnable: &mut Cursive, options: game::Options, score_tracker: ScoreTracker) {
     let mut linear_layout = LinearLayout::vertical();
     // TODO implement score
-    let score_board = cursive::views::TextView::new_with_content(cursive::views::TextContent::new("Score: "));
-    let game_board = Panel::new(SnakeGame::new(options));
-    linear_layout.add_child(score_board);
+    let score_board = views::TextView::new_with_content(views::TextContent::new("Score: "));
+    let game_board = Panel::new(SnakeGame::new(options, score_tracker));
+    linear_layout.add_child(score_board.with_name("score"));
     linear_layout.add_child(game_board);
 
     cursive_runnable.add_layer(
@@ -78,6 +80,10 @@ fn new_game(cursive_runnable: &mut Cursive, options: game::Options) {
     );
     cursive_runnable.set_fps(5);
     cursive_runnable.run();
+}
+
+fn show_best_scores(cursive_runnable: &mut Cursive, score_tracker: ScoreTracker) {
+    cursive_runnable.add_layer(Dialog::info(format!("Not yet! {}", score_tracker.get_last_score())).title("Scores"));
 }
 
 impl cursive::view::View for SnakeGame {
@@ -120,7 +126,9 @@ impl cursive::view::View for SnakeGame {
             }
         };
 
-        let score = self.score.clone();
+        let score: usize = self.get_last_score().clone();
+        let direction = self.get_direction().clone();
+        // let formatted_best_scores = self.update_and_get_best_scores().clone();
 
         if game_result == GameResult::WallCollision || game_result == GameResult::SnakeCollision {
             return EventResult::with_cb(move |s| {
@@ -131,8 +139,22 @@ impl cursive::view::View for SnakeGame {
             });
         }
 
-        return EventResult::Consumed(None);
+        let result = EventResult::with_cb(move |s| {
+            if [MovementDirection::South, MovementDirection::North].contains(&direction) {
+                s.set_fps(3);
+            } else {
+                s.set_fps(4);
+            }
 
+            s.call_on(
+                &view::Selector::Name("score"),
+                |view: &mut views::TextView| {
+                    view.set_content(format!("Score: {}", score));
+                },
+            );
+        });
+
+        return result;
     }
 
     fn take_focus(&mut self, _: Direction) -> Result<EventResult, CannotFocus> {
