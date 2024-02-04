@@ -94,7 +94,7 @@ impl cursive::view::View for SnakeGame {
 
             printer.with_color(
                 ColorStyle::new(Color::Dark(BaseColor::Black), Color::Dark(BaseColor::White)),
-                |printer| printer.print((x, y), element.to_string()),
+                |printer| printer.print((x, y), element.get_string_representation()),
             );
         }
     }
@@ -126,7 +126,7 @@ impl cursive::view::View for SnakeGame {
             }
         };
 
-        let score: usize = self.get_last_score().clone();
+        let score = *self.get_last_score();
         let direction = self.get_direction().clone();
         // let formatted_best_scores = self.update_and_get_best_scores().clone();
 
@@ -139,7 +139,7 @@ impl cursive::view::View for SnakeGame {
             });
         }
 
-        let result = EventResult::with_cb(move |s| {
+        EventResult::with_cb(move |s| {
             if [MovementDirection::South, MovementDirection::North].contains(&direction) {
                 s.set_fps(3);
             } else {
@@ -152,9 +152,7 @@ impl cursive::view::View for SnakeGame {
                     view.set_content(format!("Score: {}", score));
                 },
             );
-        });
-
-        return result;
+        })
     }
 
     fn take_focus(&mut self, _: Direction) -> Result<EventResult, CannotFocus> {

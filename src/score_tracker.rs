@@ -9,11 +9,12 @@
 
 impl ScoreTracker {
     pub fn new() -> Self {
-        return ScoreTracker {
+        ScoreTracker {
             // best_scores: BinaryHeap::with_capacity(3),
             score: 0
-        };
+        }
     }
+
     // pub fn update_best_scores(&mut self) {
     //     self.best_scores.push(self.score);
     // }
@@ -23,6 +24,12 @@ impl ScoreTracker {
     }
 
     pub fn get_last_score(&self) -> &usize {
-        return &self.score;
+        &self.score
+    }
+}
+
+impl Default for ScoreTracker{
+    fn default() -> Self{
+        Self::new()
     }
 }

@@ -19,7 +19,7 @@ pub enum CellType {
 }
 
 impl CellType {
-    pub fn to_string(&self) -> &str {
+    pub fn get_string_representation(&self) -> &str {
         match self {
             CellType::Food => "♥",
 
@@ -57,11 +57,11 @@ pub struct Snake {
 
 impl Snake {
     pub fn get_head_position(&self) -> usize {
-        return self.positions[0];
+        self.positions[0]
     }
 
     pub fn get_tail_position(&self) -> usize {
-        return self.positions[self.positions.len() - 1];
+        self.positions[self.positions.len() - 1]
     }
 
     pub fn get_body_positions(&self) -> Vec<usize> {
@@ -70,7 +70,7 @@ impl Snake {
             body_positions.push(self.positions[index]);
         }
 
-        return body_positions;
+        body_positions
     }
 
     pub fn move_east(&mut self, food_position: usize, max_x: usize) -> GameResult {
@@ -81,7 +81,7 @@ impl Snake {
             return GameResult::WallCollision;
         }
 
-        return self.move_and_check(self.get_head_position() + 1, food_position, MovementDirection::East);
+        self.move_and_check(self.get_head_position() + 1, food_position, MovementDirection::East)
     }
 
     pub fn move_west(&mut self, food_position: usize, max_x: usize) -> GameResult {
@@ -92,7 +92,7 @@ impl Snake {
             return GameResult::WallCollision;
         }
 
-        return self.move_and_check(self.get_head_position() - 1, food_position, MovementDirection::West);
+        self.move_and_check(self.get_head_position() - 1, food_position, MovementDirection::West)
     }
 
     pub fn move_south(&mut self, food_position: usize, max_x: usize, max_y: usize) -> GameResult {
@@ -103,7 +103,7 @@ impl Snake {
             return GameResult::WallCollision;
         }
 
-        return self.move_and_check(new_position, food_position, MovementDirection::South);
+        self.move_and_check(new_position, food_position, MovementDirection::South)
     }
 
     pub fn move_north(&mut self, food_position: usize, max_x: usize) -> GameResult {
@@ -114,7 +114,7 @@ impl Snake {
             return GameResult::WallCollision;
         }
 
-        return self.move_and_check(new_position as usize, food_position, MovementDirection::North);
+        self.move_and_check(new_position as usize, food_position, MovementDirection::North)
     }
 
 
@@ -124,7 +124,7 @@ impl Snake {
             return GameResult::SnakeCollision;
         }
 
-        // Normal Case
+        // Normal Cases
         let mut game_result = GameResult::Food;
         if new_position != food_position {
             self.positions.pop();
@@ -134,7 +134,7 @@ impl Snake {
         // Advance head
         self.positions.insert(0, new_position);
         self.direction = direction;
-        return game_result;
+        game_result
     }
 }
 
@@ -167,19 +167,19 @@ impl SnakeGame {
             size,
             snake,
             food_position: 15,
-            score_tracker: score_tracker,
+            score_tracker,
         };
         board.add_snake();
         board.add_food();
-        return board;
+        board
     }
 
     pub fn get_direction(&self) -> &MovementDirection {
-        return &self.snake.direction;
+        &self.snake.direction
     }
 
     pub fn get_last_score(&self) -> &usize {
-        return self.score_tracker.get_last_score();
+        self.score_tracker.get_last_score()
     }
 
     // pub fn update_best_scores(&mut self) {
@@ -215,7 +215,7 @@ impl SnakeGame {
 
 
         let random_index: usize = rand::thread_rng().gen_range(1..non_snake.len() - 1);
-        return non_snake[random_index];
+        non_snake[random_index]
     }
     fn add_food(&mut self) {
         let new_food_position = self.get_new_food_position();
@@ -305,6 +305,6 @@ impl SnakeGame {
 
 
         self.redraw();
-        return game_result;
+        game_result
     }
 }
