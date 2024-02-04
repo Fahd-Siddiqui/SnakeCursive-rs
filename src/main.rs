@@ -1,7 +1,7 @@
 mod game;
 mod score_tracker;
 
-use cursive::{direction::Direction, event::{Event, EventResult}, theme::{BaseColor, Color, ColorStyle}, view::CannotFocus, views::{Button, Dialog, LinearLayout, Panel, SelectView}, Cursive, Printer, Vec2, CursiveExt, view, views};
+use cursive::{direction::Direction, event::{Event, EventResult}, theme::{BaseColor, Color, ColorStyle}, view::CannotFocus, views::{Button, Dialog, LinearLayout, Panel, SelectView}, Cursive, Printer, Vec2, views};
 use cursive::event::Key;
 use cursive::view::{IntoBoxedView, Nameable};
 use crate::game::{GameResult, MovementDirection, SnakeGame};
@@ -64,7 +64,6 @@ fn show_options(cursive_runnable: &mut Cursive, score_tracker: ScoreTracker) {
 
 fn new_game(cursive_runnable: &mut Cursive, options: game::Options, score_tracker: ScoreTracker) {
     let mut linear_layout = LinearLayout::vertical();
-    // TODO implement score
     let score_board = views::TextView::new_with_content(views::TextContent::new("Score: "));
     let game_board = Panel::new(SnakeGame::new(options, score_tracker));
     linear_layout.add_child(score_board.with_name("score"));
@@ -78,8 +77,7 @@ fn new_game(cursive_runnable: &mut Cursive, options: game::Options, score_tracke
                 s.pop_layer();
             }),
     );
-    cursive_runnable.set_fps(5);
-    cursive_runnable.run();
+    cursive_runnable.set_fps(4);
 }
 
 fn show_best_scores(cursive_runnable: &mut Cursive, score_tracker: ScoreTracker) {
@@ -104,7 +102,21 @@ impl cursive::view::View for SnakeGame {
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
+        if self.is_paused && event != Event::Char('p') {
+            return EventResult::Ignored;
+        }
+
         let game_result = match event {
+            Event::Char('p') => {
+                if !self.is_paused {
+                    self.is_paused = true;
+                    GameResult::Continue
+                } else {
+                    self.is_paused = false;
+                    GameResult::Continue
+                }
+            }
+
             Event::Key(Key::Up) => {
                 self.move_forward(MovementDirection::North)
             }
@@ -146,8 +158,8 @@ impl cursive::view::View for SnakeGame {
                 s.set_fps(4);
             }
 
-            s.call_on(
-                &view::Selector::Name("score"),
+            s.call_on_name(
+                "score",
                 |view: &mut views::TextView| {
                     view.set_content(format!("Score: {}", score));
                 },

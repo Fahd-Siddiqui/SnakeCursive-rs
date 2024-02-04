@@ -144,7 +144,8 @@ pub struct SnakeGame {
     pub size: Vec2,
     pub snake: Snake,
     pub food_position: usize,
-    pub score_tracker: ScoreTracker
+    pub score_tracker: ScoreTracker,
+    pub is_paused: bool,
 }
 
 impl SnakeGame {
@@ -168,6 +169,7 @@ impl SnakeGame {
             snake,
             food_position: 15,
             score_tracker,
+            is_paused: false,
         };
         board.add_snake();
         board.add_food();

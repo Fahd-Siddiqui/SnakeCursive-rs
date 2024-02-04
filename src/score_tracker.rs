@@ -1,7 +1,7 @@
 // use std::collections::{BinaryHeap};
 
- #[derive(Copy, Clone, Debug)]
- pub struct ScoreTracker {
+#[derive(Copy, Clone, Debug)]
+pub struct ScoreTracker {
     // best_scores: VecDeque<usize>,
     // best_scores: BinaryHeap<usize>,
     score: usize,
@@ -28,8 +28,8 @@ impl ScoreTracker {
     }
 }
 
-impl Default for ScoreTracker{
-    fn default() -> Self{
+impl Default for ScoreTracker {
+    fn default() -> Self {
         Self::new()
     }
 }
